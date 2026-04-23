@@ -4,7 +4,7 @@ import type { Task } from "../types/task";
 
 interface Props {
   tasks: Task[];
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
   onMove: (index: number, dir: "up" | "down") => void;
   onEdit: (task: Task) => void;
 }

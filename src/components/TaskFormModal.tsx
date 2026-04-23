@@ -10,6 +10,7 @@ interface Props {
   onSubmit: () => void;
   modalTitle: string;
   modalButtonText: string;
+  loading?: boolean;
 }
 
 export function TaskFormModal({
@@ -22,6 +23,7 @@ export function TaskFormModal({
   onSubmit,
   modalTitle,
   modalButtonText,
+  loading = false,
 }: Props) {
   return (
     <Modal opened={opened} onClose={onClose} title={modalTitle} centered>
@@ -40,6 +42,7 @@ export function TaskFormModal({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           mt="md"
+          disabled={loading}
         />
 
         <TextInput
@@ -48,6 +51,7 @@ export function TaskFormModal({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           mt="md"
+          disabled={loading}
         />
 
         <Group mt="md" justify="space-between">
@@ -55,10 +59,11 @@ export function TaskFormModal({
             variant="subtle"
             onClick={onClose}
             aria-label="Cancel task editing"
+            disabled={loading}
           >
             Cancel
           </Button>
-          <Button type="submit" aria-label={modalButtonText}>
+          <Button type="submit" aria-label={modalButtonText} loading={loading}>
             {modalButtonText}
           </Button>
         </Group>

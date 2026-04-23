@@ -11,7 +11,7 @@ interface Props {
   task: Task;
   index: number;
   tasksLength: number;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
   onMove: (index: number, dir: "up" | "down") => void;
   onEdit: (task: Task) => void;
 }
