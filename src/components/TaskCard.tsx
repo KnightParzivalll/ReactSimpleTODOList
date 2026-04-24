@@ -1,4 +1,5 @@
-import { Card, Text, Group, ActionIcon } from "@mantine/core";
+import { memo } from "react";
+import { Card, Text, Group, ActionIcon, Box } from "@mantine/core";
 import {
   IconTrash,
   IconArrowUp,
@@ -16,7 +17,7 @@ interface Props {
   onEdit: (task: Task) => void;
 }
 
-export function TaskCard({
+function TaskCardComponent({
   task,
   index,
   tasksLength,
@@ -27,14 +28,14 @@ export function TaskCard({
   return (
     <Card withBorder radius="md" p="md">
       <Group justify="space-between" align="flex-start">
-        <div style={{ flex: 1, minWidth: 0 }}>
+        <Box style={{ flex: 1, minWidth: 0 }}>
           <Text fw={600} truncate>
             {task.title}
           </Text>
           <Text size="sm" c="dimmed" truncate>
             {task.description || "No summary"}
           </Text>
-        </div>
+        </Box>
 
         <Group gap={4}>
           <ActionIcon
@@ -66,3 +67,5 @@ export function TaskCard({
     </Card>
   );
 }
+
+export const TaskCard = memo(TaskCardComponent);

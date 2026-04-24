@@ -1,21 +1,15 @@
+import type { Task, TaskCreate } from "../types/task";
+
 const API_BASE_URL = "https://faithful-peace-production-595d.up.railway.app";
-
-export interface TodoCreate {
-  title: string;
-  description: string;
-}
-
-export interface TodoOut {
-  id: number;
-  title: string;
-  description: string;
-  order: number;
-}
 
 class TodoAPI {
   private baseURL = API_BASE_URL;
 
-  async getTodos(): Promise<TodoOut[]> {
+  /**
+   * Fetch all todos from the API
+   * @returns Promise<Task[]> - Array of all todos
+   */
+  async getTodos(): Promise<Task[]> {
     const response = await fetch(`${this.baseURL}/todos/`);
     if (!response.ok) {
       throw new Error(`Failed to fetch todos: ${response.statusText}`);
@@ -23,7 +17,12 @@ class TodoAPI {
     return response.json();
   }
 
-  async createTodo(data: TodoCreate): Promise<TodoOut> {
+  /**
+   * Create a new todo
+   * @param data - TaskCreate object with title and description
+   * @returns Promise<Task> - The created todo with id and order
+   */
+  async createTodo(data: TaskCreate): Promise<Task> {
     const response = await fetch(`${this.baseURL}/todos/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -35,7 +34,13 @@ class TodoAPI {
     return response.json();
   }
 
-  async updateTodo(id: number, data: Partial<TodoCreate>): Promise<TodoOut> {
+  /**
+   * Update an existing todo
+   * @param id - Todo ID to update
+   * @param data - Partial TaskCreate object (title and/or description)
+   * @returns Promise<Task> - The updated todo
+   */
+  async updateTodo(id: number, data: Partial<TaskCreate>): Promise<Task> {
     const response = await fetch(`${this.baseURL}/todos/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -47,6 +52,11 @@ class TodoAPI {
     return response.json();
   }
 
+  /**
+   * Delete a todo
+   * @param id - Todo ID to delete
+   * @returns Promise<void>
+   */
   async deleteTodo(id: number): Promise<void> {
     const response = await fetch(`${this.baseURL}/todos/${id}`, {
       method: "DELETE",
@@ -56,7 +66,12 @@ class TodoAPI {
     }
   }
 
-  async moveUp(id: number): Promise<TodoOut> {
+  /**
+   * Move a todo up in the list (decrease order)
+   * @param id - Todo ID to move up
+   * @returns Promise<Task> - The updated todo
+   */
+  async moveUp(id: number): Promise<Task> {
     const response = await fetch(`${this.baseURL}/todos/${id}/move-up`, {
       method: "POST",
     });
@@ -66,7 +81,12 @@ class TodoAPI {
     return response.json();
   }
 
-  async moveDown(id: number): Promise<TodoOut> {
+  /**
+   * Move a todo down in the list (increase order)
+   * @param id - Todo ID to move down
+   * @returns Promise<Task> - The updated todo
+   */
+  async moveDown(id: number): Promise<Task> {
     const response = await fetch(`${this.baseURL}/todos/${id}/move-down`, {
       method: "POST",
     });

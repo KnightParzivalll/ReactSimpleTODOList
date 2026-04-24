@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Stack } from "@mantine/core";
 import { TaskCard } from "./TaskCard";
 import type { Task } from "../types/task";
@@ -9,7 +10,7 @@ interface Props {
   onEdit: (task: Task) => void;
 }
 
-export function TaskList({ tasks, onDelete, onMove, onEdit }: Props) {
+function TaskListComponent({ tasks, onDelete, onMove, onEdit }: Props) {
   return (
     <Stack>
       {tasks.map((task, index) => (
@@ -26,3 +27,5 @@ export function TaskList({ tasks, onDelete, onMove, onEdit }: Props) {
     </Stack>
   );
 }
+
+export const TaskList = memo(TaskListComponent);

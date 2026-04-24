@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import {
   Container,
   Button,
@@ -6,128 +6,43 @@ import {
   MantineProvider,
   Alert,
   Loader,
+  Box,
 } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
 
 import { useLocalStorage } from "./hooks/useLocalStorage";
-import type { Task } from "./types/task";
-import { todoAPI } from "./services/api";
+import { useTasks } from "./hooks/useTasks";
+import { useModal } from "./hooks/useModal";
 
 import { TaskFormModal } from "./components/TaskFormModal";
 import { Header } from "./components/Header";
 import { TaskList } from "./components/TaskList";
 
 export default function App() {
-  const [tasks, setTasks] = React.useState<Task[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  const [title, setTitle] = React.useState("");
-  const [description, setDescription] = React.useState("");
-
-  const [opened, setOpened] = React.useState(false);
-  const [editingTask, setEditingTask] = React.useState<Task | null>(null);
-  const [submitting, setSubmitting] = React.useState(false);
-
+  const {
+    tasks,
+    loading,
+    error,
+    setError,
+    fetchTodos,
+    submitTask,
+    deleteTask,
+    moveTask,
+  } = useTasks();
+  const { modal, openNewTaskModal, closeModal, updateFormData, startEdit } =
+    useModal();
   const [theme, setTheme] = useLocalStorage<"light" | "dark">("theme", "light");
+
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
   // Fetch todos on mount
-  React.useEffect(() => {
+  useEffect(() => {
     fetchTodos();
   }, []);
 
-  const fetchTodos = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await todoAPI.getTodos();
-      setTasks(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load tasks");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetForm = () => {
-    setTitle("");
-    setDescription("");
-    setEditingTask(null);
-  };
-
-  const submitTask = async () => {
-    if (!title.trim()) return;
-
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      if (editingTask) {
-        await todoAPI.updateTodo(editingTask.id, {
-          title,
-          description,
-        });
-        setTasks(
-          tasks.map((t) =>
-            t.id === editingTask.id ? { ...t, title, description } : t,
-          ),
-        );
-      } else {
-        const created = await todoAPI.createTodo({ title, description });
-        setTasks([...tasks, created]);
-      }
-
-      resetForm();
-      setOpened(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save task");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const startEdit = (task: Task) => {
-    setEditingTask(task);
-    setTitle(task.title);
-    setDescription(task.description);
-    setOpened(true);
-  };
-
-  const deleteTask = async (id: number) => {
-    try {
-      setError(null);
-      await todoAPI.deleteTodo(id);
-      setTasks(tasks.filter((t) => t.id !== id));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete task");
-    }
-  };
-
-  const moveTask = async (index: number, dir: "up" | "down") => {
-    try {
-      setError(null);
-      const newTasks = [...tasks];
-      const target = dir === "up" ? index - 1 : index + 1;
-
-      if (target < 0 || target >= tasks.length) return;
-
-      [newTasks[index], newTasks[target]] = [newTasks[target], newTasks[index]];
-      setTasks(newTasks);
-
-      const task = tasks[index];
-      dir === "up"
-        ? await todoAPI.moveUp(task.id)
-        : await todoAPI.moveDown(task.id);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to move task");
-      await fetchTodos();
-    }
-  };
-
   return (
     <MantineProvider forceColorScheme={theme}>
-      <Container size={550} my={40}>
+      <Container size={550} my={40} px="md">
         <Stack>
           <Header theme={theme} toggle={toggleTheme} />
 
@@ -144,15 +59,9 @@ export default function App() {
           )}
 
           {loading ? (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                padding: "2rem",
-              }}
-            >
+            <Box display="flex" style={{ justifyContent: "center" }} py="2rem">
               <Loader />
-            </div>
+            </Box>
           ) : (
             <TaskList
               tasks={tasks}
@@ -165,7 +74,7 @@ export default function App() {
           <Button
             fullWidth
             mt="md"
-            onClick={() => setOpened(true)}
+            onClick={openNewTaskModal}
             aria-label="Create new task"
             disabled={loading}
           >
@@ -174,19 +83,19 @@ export default function App() {
         </Stack>
 
         <TaskFormModal
-          opened={opened}
-          onClose={() => {
-            setOpened(false);
-            resetForm();
+          opened={modal.isOpen}
+          onClose={closeModal}
+          formData={modal.formData}
+          onChange={updateFormData}
+          onSubmit={async () => {
+            await submitTask(
+              modal.formData,
+              modal.isEditing,
+              modal.editingTaskId,
+            );
+            closeModal();
           }}
-          title={title}
-          description={description}
-          setTitle={setTitle}
-          setDescription={setDescription}
-          onSubmit={submitTask}
-          modalTitle={editingTask ? "Edit Task" : "New Task"}
-          modalButtonText={editingTask ? "Save Changes" : "Create Task"}
-          loading={submitting}
+          isEditing={modal.isEditing}
         />
       </Container>
     </MantineProvider>

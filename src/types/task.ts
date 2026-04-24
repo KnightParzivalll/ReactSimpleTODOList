@@ -4,3 +4,8 @@ export interface Task {
   description: string;
   order: number;
 }
+
+export interface TaskCreate {
+  title: string;
+  description: string;
+}
