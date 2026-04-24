@@ -32,7 +32,7 @@ function MainPageComponent({
 
   // Refetch when returning to main page from settings
   useEffect(() => {
-    if (location.pathname === "/") {
+    if (location.pathname === "/ReactSimpleTODOList") {
       fetchTodos();
     }
   }, [location]);
