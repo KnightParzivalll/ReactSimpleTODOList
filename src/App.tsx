@@ -1,14 +1,6 @@
-import { useEffect } from "react";
-import {
-  Container,
-  Button,
-  Stack,
-  MantineProvider,
-  Alert,
-  Loader,
-  Box,
-} from "@mantine/core";
-import { IconAlertCircle } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { Container, Stack, MantineProvider } from "@mantine/core";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { useTasks } from "./hooks/useTasks";
@@ -16,7 +8,8 @@ import { useModal } from "./hooks/useModal";
 
 import { TaskFormModal } from "./components/TaskFormModal";
 import { Header } from "./components/Header";
-import { TaskList } from "./components/TaskList";
+import { Settings } from "./pages/Settings";
+import { MainPage } from "./pages/MainPage";
 
 export default function App() {
   const {
@@ -33,6 +26,8 @@ export default function App() {
     useModal();
   const [theme, setTheme] = useLocalStorage<"light" | "dark">("theme", "light");
 
+  const [isSettingsDisabled, setIsSettingsDisabled] = useState<boolean>(false);
+
   const toggleTheme = () => setTheme(theme === "dark" ? "light" : "dark");
 
   // Fetch todos on mount
@@ -42,62 +37,70 @@ export default function App() {
 
   return (
     <MantineProvider forceColorScheme={theme}>
-      <Container size={550} my={40} px="md">
-        <Stack>
-          <Header theme={theme} toggle={toggleTheme} />
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/ReactSimpleTODOList"
+            element={
+              <Container size={550} my={40} px="md">
+                <Stack>
+                  <Header
+                    theme={theme}
+                    toggle={toggleTheme}
+                    isSettingsDisabled={isSettingsDisabled}
+                  />
 
-          {error && (
-            <Alert
-              icon={<IconAlertCircle />}
-              title="Error"
-              color="red"
-              withCloseButton
-              onClose={() => setError(null)}
-            >
-              {error}
-            </Alert>
-          )}
+                  <MainPage
+                    error={error}
+                    loading={loading}
+                    tasks={tasks}
+                    setError={setError}
+                    deleteTask={deleteTask}
+                    moveTask={moveTask}
+                    startEdit={startEdit}
+                    openNewTaskModal={openNewTaskModal}
+                    fetchTodos={fetchTodos}
+                  />
+                </Stack>
+              </Container>
+            }
+          />
+          <Route
+            path="/ReactSimpleTODOList/settings"
+            element={
+              <Container size={550} my={40} px="md">
+                <Stack>
+                  <Header
+                    theme={theme}
+                    toggle={toggleTheme}
+                    isSettingsDisabled={isSettingsDisabled}
+                  />
+                  <Settings
+                    tasks={tasks}
+                    setIsSettingsDisabled={setIsSettingsDisabled}
+                  />
+                </Stack>
+              </Container>
+            }
+          />
+        </Routes>
+      </BrowserRouter>
 
-          {loading ? (
-            <Box display="flex" style={{ justifyContent: "center" }} py="2rem">
-              <Loader />
-            </Box>
-          ) : (
-            <TaskList
-              tasks={tasks}
-              onDelete={deleteTask}
-              onMove={moveTask}
-              onEdit={startEdit}
-            />
-          )}
-
-          <Button
-            fullWidth
-            mt="md"
-            onClick={openNewTaskModal}
-            aria-label="Create new task"
-            disabled={loading}
-          >
-            New Task
-          </Button>
-        </Stack>
-
-        <TaskFormModal
-          opened={modal.isOpen}
-          onClose={closeModal}
-          formData={modal.formData}
-          onChange={updateFormData}
-          onSubmit={async () => {
-            await submitTask(
-              modal.formData,
-              modal.isEditing,
-              modal.editingTaskId,
-            );
-            closeModal();
-          }}
-          isEditing={modal.isEditing}
-        />
-      </Container>
+      <TaskFormModal
+        opened={modal.isOpen}
+        onClose={closeModal}
+        formData={modal.formData}
+        onChange={updateFormData}
+        onSubmit={async () => {
+          await submitTask(
+            modal.formData,
+            modal.isEditing,
+            modal.editingTaskId,
+          );
+          closeModal();
+        }}
+        isEditing={modal.isEditing}
+      />
     </MantineProvider>
   );
 }
